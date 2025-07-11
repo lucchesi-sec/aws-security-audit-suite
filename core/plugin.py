@@ -158,10 +158,13 @@ class PluginRegistry:
             if asyncio.iscoroutinefunction(plugin.scan_function):
                 findings = await plugin.scan_function(context)
             else:
-                # Wrap synchronous functions in async
-                findings = await asyncio.get_event_loop().run_in_executor(
-                    None, plugin.scan_function, context
-                )
+                # Wrap synchronous functions in async using modern approach
+                import sys
+                if sys.version_info >= (3, 9):
+                    findings = await asyncio.to_thread(plugin.scan_function, context)
+                else:
+                    loop = asyncio.get_running_loop()
+                    findings = await loop.run_in_executor(None, plugin.scan_function, context)
             
             self.logger.info(f"Plugin {plugin.name} completed with {len(findings or [])} findings")
             return findings or []

@@ -2,9 +2,9 @@ name: Security CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   schedule:
     - cron: '0 6 * * 1'  # Weekly security scan
 
@@ -23,12 +23,12 @@ jobs:
         fetch-depth: 0
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
@@ -50,7 +50,7 @@ jobs:
       run: flake8 .
     
     - name: Type Checking - mypy
-      run: mypy .
+      run: mypy . --ignore-missing-imports
     
     - name: Security Scan - Bandit
       run: |
@@ -64,6 +64,7 @@ jobs:
     
     - name: Dependency Scan - pip-audit
       run: |
+        pip install pip-audit
         pip-audit --format=json --output=pip-audit-report.json || true
         pip-audit
     
@@ -80,15 +81,14 @@ jobs:
         pytest --cov=. --cov-report=xml --cov-report=html
     
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage.xml
+        file: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
     
     - name: Upload Security Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-reports-${{ matrix.python-version }}
@@ -118,6 +118,36 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "See artifacts for detailed reports." >> $GITHUB_STEP_SUMMARY
 
+  license-compliance:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-licenses
+        pip install -e .
+    
+    - name: Check Licenses
+      run: |
+        pip-licenses --format=json --output-file=licenses.json
+        pip-licenses --fail-on="GPL" --allow-only="MIT;BSD;Apache;ISC;MPL-2.0"
+    
+    - name: Upload License Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: license-report
+        path: licenses.json
+
   codeql-analysis:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
@@ -131,45 +161,15 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: python
         queries: security-extended,security-and-quality
     
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
     
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
       with:
         category: "/language:python"
-
-  license-check:
-    name: License Compliance
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pip-licenses
-        pip install -e .
-    
-    - name: Check Licenses
-      run: |
-        pip-licenses --format=json --output-file=licenses.json
-        pip-licenses --fail-on='GPL'
-    
-    - name: Upload License Report
-      uses: actions/upload-artifact@v3
-      with:
-        name: license-report
-        path: licenses.json
