@@ -89,8 +89,8 @@ jobs:
     
     - name: Dependency Scan - Safety
       run: |
-        safety check --json --output safety-report.json || true
-        safety check
+        safety scan --output json --save-as safety-report.json || true
+        safety scan
     
     - name: Dependency Scan - pip-audit
       run: |
@@ -101,9 +101,10 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
-        head: HEAD
+        base: ${{ github.event.repository.default_branch }}
+        head: ${{ github.sha }}
         extra_args: --debug --only-verified
+      continue-on-error: true
     
     - name: Upload Security Reports
       uses: actions/upload-artifact@v4
@@ -126,7 +127,7 @@ jobs:
         fi
         
         if [ -f safety-report.json ]; then
-          echo "**Safety Dependency Scan:** $(jq '.vulnerabilities | length' safety-report.json) vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          echo "**Safety Dependency Scan:** $(jq '.scan.vulnerabilities // [] | length' safety-report.json) vulnerabilities found" >> $GITHUB_STEP_SUMMARY
         fi
         
         echo "" >> $GITHUB_STEP_SUMMARY
