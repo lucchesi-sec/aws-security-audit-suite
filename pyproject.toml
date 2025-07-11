@@ -56,7 +56,8 @@ dev = [
 security = [
     "bandit>=1.7.5",
     "safety>=3.0.0",
-    "semgrep>=1.45.0"
+    "semgrep>=1.45.0",
+    "pip-audit>=2.6.0"
 ]
 
 [project.urls]
@@ -65,7 +66,7 @@ Repository = "https://github.com/lucchesi-sec/aws-security-audit-suite"
 Documentation = "https://github.com/lucchesi-sec/aws-security-audit-suite/blob/main/README.md"
 
 [project.scripts]
-aws-security-suite = "cli:app"
+aws-security-suite = "cli.py:app"
 
 [tool.setuptools.packages.find]
 where = ["."]
