@@ -1,5 +1,7 @@
 # AWS Security Suite
 
+![Python](https://img.shields.io/badge/Python-3.9+-blue) ![AWS](https://img.shields.io/badge/Platform-AWS-orange) ![Security](https://img.shields.io/badge/Focus-Security%20Audit-red) ![License](https://img.shields.io/badge/License-MIT-green) ![Version](https://img.shields.io/badge/Version-2.0.0-purple)
+
 A unified, extensible AWS security scanning and compliance suite that combines multiple security tools into a single, powerful platform.
 
 ## Features
