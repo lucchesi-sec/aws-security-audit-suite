@@ -48,11 +48,12 @@ class Finding:
     # Compliance mapping
     compliant_controls: List[str] = field(default_factory=list)
     
+    # Remediation
+    remediation: Dict[str, Any] = field(default_factory=dict)
+    
     # Metadata
     timestamp: datetime = field(default_factory=datetime.utcnow)
-    remediation_available: bool = False
-    description: str = ""
-    recommendation: str = ""
+    scanner_version: str = "1.0"
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert finding to dictionary for serialization."""
@@ -69,116 +70,28 @@ class Finding:
             "context": self.context,
             "evidence": self.evidence,
             "compliant_controls": self.compliant_controls,
+            "remediation": self.remediation,
             "timestamp": self.timestamp.isoformat(),
-            "remediation_available": self.remediation_available,
-            "description": self.description,
-            "recommendation": self.recommendation
+            "scanner_version": self.scanner_version
         }
     
-    def to_asff(self) -> Dict[str, Any]:
-        """Convert finding to AWS Security Finding Format (ASFF) for Security Hub integration."""
-        # Map severity to ASFF format
-        severity_mapping = {
-            Severity.CRITICAL: {"Label": "CRITICAL", "Normalized": 90},
-            Severity.HIGH: {"Label": "HIGH", "Normalized": 70},
-            Severity.MEDIUM: {"Label": "MEDIUM", "Normalized": 40},
-            Severity.LOW: {"Label": "LOW", "Normalized": 30},
-            Severity.INFO: {"Label": "INFORMATIONAL", "Normalized": 0}
-        }
-        
-        # Map status to compliance status
-        compliance_status = "PASSED" if self.status == Status.PASS else "FAILED"
-        
-        return {
-            "SchemaVersion": "2018-10-08",
-            "Id": f"{self.check_id}/{self.resource_id}",
-            "ProductArn": f"arn:aws:securityhub:{self.region}:{self.account_id}:product/{self.account_id}/default",
-            "GeneratorId": f"aws-security-suite/{self.service}",
-            "AwsAccountId": self.account_id,
-            "Types": [f"Sensitive Data Identifications/AWS/{self.service.upper()}"],
-            "FirstObservedAt": self.timestamp.isoformat() + "Z",
-            "LastObservedAt": self.timestamp.isoformat() + "Z",
-            "CreatedAt": self.timestamp.isoformat() + "Z",
-            "UpdatedAt": self.timestamp.isoformat() + "Z",
-            "Severity": severity_mapping[self.severity],
-            "Title": self.check_title,
-            "Description": self.description,
-            "Remediation": {
-                "Recommendation": {
-                    "Text": self.recommendation,
-                    "Url": f"https://docs.aws.amazon.com/{self.service}/"
-                }
-            },
-            "Resources": [
-                {
-                    "Id": self.resource_id,
-                    "Type": f"AWS{self.service.upper()}",
-                    "Region": self.region,
-                    "Details": {
-                        "Other": {
-                            "resourceName": self.resource_name,
-                            "checkId": self.check_id,
-                            "remediationAvailable": str(self.remediation_available),
-                            **self.context
-                        }
-                    }
-                }
-            ],
-            "Compliance": {
-                "Status": compliance_status,
-                "RelatedRequirements": self.compliant_controls
-            },
-            "RecordState": "ACTIVE",
-            "WorkflowState": "NEW"
-        }
-
-
-@dataclass
-class ScanResult:
-    """Container for scan results from one or more services."""
-    findings: List[Finding] = field(default_factory=list)
-    scan_timestamp: datetime = field(default_factory=datetime.utcnow)
-    account_id: str = ""
-    regions_scanned: List[str] = field(default_factory=list)
-    services_scanned: List[str] = field(default_factory=list)
-    
-    def add_finding(self, finding: Finding) -> None:
-        """Add a finding to the results."""
-        self.findings.append(finding)
-    
-    def get_findings_by_service(self, service: str) -> List[Finding]:
-        """Get all findings for a specific service."""
-        return [f for f in self.findings if f.service == service]
-    
-    def get_critical_findings(self) -> List[Finding]:
-        """Get all critical findings."""
-        return [f for f in self.findings if f.severity == Severity.CRITICAL]
-    
-    def get_summary(self) -> Dict[str, Any]:
-        """Get a summary of scan results."""
-        from datetime import datetime
-        
-        # Calculate scan duration
-        now = datetime.utcnow()
-        duration = (now - self.scan_timestamp).total_seconds()
-        
-        # Count by severity
-        severity_counts = {}
-        for severity in Severity:
-            severity_counts[severity.value] = len([f for f in self.findings if f.severity == severity])
-        
-        # Count by status  
-        status_counts = {}
-        for status in Status:
-            status_counts[status.value] = len([f for f in self.findings if f.status == status])
-        
-        return {
-            "total_findings": len(self.findings),
-            "scan_duration_seconds": duration,
-            "by_severity": severity_counts,
-            "by_status": status_counts,
-            "services_scanned": self.services_scanned,
-            "regions_scanned": self.regions_scanned,
-            "account_id": self.account_id,
-            "scan_timestamp": self.scan_timestamp.isoformat()
-        }
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Finding':
+        """Create finding from dictionary."""
+        return cls(
+            service=data["service"],
+            resource_id=data["resource_id"],
+            resource_name=data["resource_name"],
+            check_id=data["check_id"],
+            check_title=data["check_title"],
+            status=Status(data["status"]),
+            severity=Severity(data["severity"]),
+            region=data["region"],
+            account_id=data["account_id"],
+            context=data.get("context", {}),
+            evidence=data.get("evidence", {}),
+            compliant_controls=data.get("compliant_controls", []),
+            remediation=data.get("remediation", {}),
+            timestamp=datetime.fromisoformat(data.get("timestamp", datetime.utcnow().isoformat())),
+            scanner_version=data.get("scanner_version", "1.0")
+        )

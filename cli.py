@@ -16,7 +16,7 @@ from rich import print
 
 from core.audit_context import AuditContext
 from core.scanner import Scanner
-from core.finding import Severity, Status
+from core.finding import Severity
 from plugins.s3 import register as s3_register
 from plugins.iam import register as iam_register
 from plugins.ec2 import register as ec2_register
@@ -40,19 +40,7 @@ REGION_PATTERN = re.compile(r'^[a-z]{2}-[a-z]+-\d{1}$')
 
 
 def setup_logging(verbose: bool = False):
-    """
-    Configure logging for the AWS Security Suite CLI.
-    
-    Args:
-        verbose (bool): If True, enables DEBUG level logging. 
-                       If False, uses INFO level logging.
-    
-    Time Complexity: O(1) - Simple configuration setup
-    
-    Note:
-        This function configures the root logger with a standardized format
-        that includes timestamp, logger name, level, and message.
-    """
+    """Configure logging for the AWS Security Suite CLI."""
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
         level=level,
@@ -93,39 +81,7 @@ def scan(
         help="Enable verbose logging"
     )
 ):
-    """
-    Main CLI command to scan AWS services for security vulnerabilities.
-    
-    This command orchestrates the entire security scanning process by:
-    1. Setting up logging configuration
-    2. Parsing command-line arguments
-    3. Creating an audit context with AWS credentials
-    4. Registering all available security plugins
-    5. Running scans across specified services and regions
-    6. Filtering and displaying results
-    
-    Args:
-        services (Optional[str]): Comma-separated AWS services to scan.
-                                 If None, scans all registered services.
-        regions (Optional[str]): AWS regions to scan. Defaults to 'us-east-1'.
-        profile (Optional[str]): AWS CLI profile to use for authentication.
-        output_format (str): Output format - 'table', 'json', or 'csv'.
-        severity_filter (str): Filter results by severity level.
-        verbose (bool): Enable detailed logging output.
-    
-    Time Complexity: O(n*m*k) where:
-        - n = number of services
-        - m = number of regions  
-        - k = average number of resources per service
-    
-    Raises:
-        SystemExit: If scanning fails and verbose=False
-        Exception: If scanning fails and verbose=True (for debugging)
-    
-    Call Flow:
-        scan() -> setup_logging() -> AuditContext() -> Scanner() ->
-        scanner.scan_all_services() -> display_*() functions -> display_summary()
-    """
+    """Main CLI command to scan AWS services for security vulnerabilities."""
     setup_logging(verbose)
     
     # SECURITY: Validate and parse services and regions
@@ -197,27 +153,10 @@ def scan(
         if verbose:
             raise
         sys.exit(1)
+
+
 def display_table(findings):
-    """
-    Display security findings in a formatted table using Rich library.
-    
-    Args:
-        findings (List[Finding]): List of security findings to display.
-    
-    Time Complexity: O(n) where n is the number of findings
-    
-    Call Flow:
-        Called by scan() -> Creates Rich Table -> Adds columns -> 
-        Iterates findings -> Applies color coding -> Prints table
-    
-    Note:
-        Uses color coding for severity levels:
-        - CRITICAL: bold red
-        - HIGH: red  
-        - MEDIUM: yellow
-        - LOW: blue
-        - INFO: dim
-    """
+    """Display security findings in a formatted table using Rich library."""
     table = Table(title="AWS Security Findings")
     
     table.add_column("Service", style="cyan")
@@ -256,43 +195,14 @@ def display_table(findings):
 
 
 def display_json(findings):
-    """
-    Display security findings in JSON format for programmatic consumption.
-    
-    Args:
-        findings (List[Finding]): List of security findings to serialize.
-    
-    Time Complexity: O(n) where n is the number of findings
-    
-    Call Flow:
-        Called by scan() -> Converts findings to dict -> JSON serialization -> Print
-    
-    Note:
-        Uses default=str to handle non-serializable objects like datetime.
-    """
+    """Display security findings in JSON format for programmatic consumption."""
     import json
     data = [f.to_dict() for f in findings]
     print(json.dumps(data, indent=2, default=str))
 
 
 def display_summary(result):
-    """
-    Display a comprehensive summary of the security scan results.
-    
-    Args:
-        result (ScanResult): The scan result object containing findings and metadata.
-    
-    Time Complexity: O(n) where n is the number of findings (for summary calculation)
-    
-    Call Flow:
-        Called by scan() -> result.get_summary() -> Console formatting -> Print summary
-    
-    Summary includes:
-        - Total number of findings
-        - Scan duration in seconds
-        - Breakdown by severity (CRITICAL, HIGH, MEDIUM, LOW, INFO)
-        - Breakdown by status (FAIL, PASS, WARNING)
-    """
+    """Display a comprehensive summary of the security scan results."""
     summary = result.get_summary()
     
     console.print("\n[bold]Scan Summary[/bold]")
@@ -314,19 +224,7 @@ def display_summary(result):
 
 @app.command()
 def list_services():
-    """
-    List all available AWS services that can be scanned by the security suite.
-    
-    Time Complexity: O(n) where n is the number of registered plugins
-    
-    Call Flow:
-        list_services() -> Creates AuditContext() -> Scanner() -> 
-        Registers all plugins -> scanner.registry.list_services() -> Print services
-    
-    Note:
-        This command temporarily creates a scanner instance to enumerate
-        all registered plugins without performing any actual scanning.
-    """
+    """List all available AWS services that can be scanned by the security suite."""
     # Create scanner to get registered services
     context = AuditContext()
     scanner = Scanner(context)
@@ -370,17 +268,7 @@ def permissions(
 
 
 def validate_services(services_str: str) -> List[str]:
-    """Validate and parse comma-separated service names.
-    
-    Args:
-        services_str: Comma-separated string of service names
-        
-    Returns:
-        List of validated service names
-        
-    Raises:
-        typer.Exit: If any service name is invalid
-    """
+    """Validate and parse comma-separated service names."""
     if not services_str or not services_str.strip():
         return []
     
@@ -396,17 +284,7 @@ def validate_services(services_str: str) -> List[str]:
 
 
 def validate_regions(regions_str: str) -> List[str]:
-    """Validate and parse comma-separated region names.
-    
-    Args:
-        regions_str: Comma-separated string of region names
-        
-    Returns:
-        List of validated region names
-        
-    Raises:
-        typer.Exit: If any region name is invalid
-    """
+    """Validate and parse comma-separated region names."""
     if not regions_str or not regions_str.strip():
         return ['us-east-1']
     

@@ -1,6 +1,4 @@
-# AWS Security Suite
-
-![Python](https://img.shields.io/badge/Python-3.9+-blue) ![AWS](https://img.shields.io/badge/Platform-AWS-orange) ![Security](https://img.shields.io/badge/Focus-Security%20Audit-red) ![License](https://img.shields.io/badge/License-MIT-green) ![Version](https://img.shields.io/badge/Version-2.0.0-purple)
+# AWS Security Audit Suite
 
 A unified, extensible AWS security scanning and compliance suite that combines multiple security tools into a single, powerful platform.
 
@@ -51,96 +49,125 @@ pip install -e .
 # Scan all services in default region
 aws-security-suite scan
 
-# Scan specific services
-aws-security-suite scan --services s3,iam --regions us-east-1,us-west-2
+# Scan specific service
+aws-security-suite scan --service s3
 
-# Filter by severity
-aws-security-suite scan --severity critical
+# Scan with compliance framework
+aws-security-suite scan --compliance cis
 
-# JSON output
-aws-security-suite scan --format json
-
-# List available services
-aws-security-suite list-services
-
-# Show required permissions
-aws-security-suite permissions
+# Generate report
+aws-security-suite report --format json --output findings.json
 ```
 
-## Supported Services
+### Configuration
 
-### Core Security Scanners
-- **EC2**: 16 comprehensive security checks covering instances, security groups, EBS volumes, and VPC configuration
-- **RDS**: Database security analysis including encryption, backup, and public accessibility checks
-- **Lambda**: Function security assessment covering runtime, permissions, and configuration
-- **S3**: Bucket security, encryption, versioning, public access, and logging configuration
-- **IAM**: (Integration with cloud-iam-analyzer for comprehensive identity analysis)
+Create `config.yaml`:
+```yaml
+aws:
+  region: us-west-2
+  profile: default
+  
+scanning:
+  parallel_scans: 5
+  rate_limit: 10
+  
+compliance:
+  frameworks: ["cis", "soc2"]
+  
+reporting:
+  format: json
+  include_remediation: true
+```
 
-### Security Coverage
-| Service | Security Checks | Auto-Remediation | Compliance Mapping |
-|---------|-----------------|------------------|-----------------|
-| EC2 | 16 checks | 13 automated | CIS, SOC2, AWS Config |
-| RDS | 20 checks | 15 automated | CIS, SOC2, PCI DSS |
-| Lambda | 25 checks | 18 automated | CIS, SOC2, NIST |
-| S3 | 12 checks | 10 automated | CIS, SOC2, PCI DSS |
+## Services Supported
 
-## Roadmap
+### ✅ Currently Supported
+- **S3**: Bucket security, encryption, access policies
+- **IAM**: User permissions, role analysis, policy validation
+- **EC2**: Security groups, instance configuration, AMI scanning
+- **RDS**: Database security, encryption, backup policies
+- **Lambda**: Function security, environment variables, permissions
 
-### Current Capabilities ✅
-- [x] Plugin architecture with async performance engine
-- [x] Unified Finding model with severity classification
-- [x] Rich CLI interface with multiple output formats
-- [x] EC2 comprehensive security scanning (16 checks)
-- [x] RDS database security analysis (20 checks)
-- [x] Lambda function security assessment (25 checks)
-- [x] S3 bucket security validation (12 checks)
-- [x] Automated remediation framework (80%+ coverage)
-- [x] Multi-region concurrent scanning
-- [x] Compliance framework mapping (CIS, SOC2, PCI DSS)
-
-### Enhanced Features (In Development)
-- [ ] Real-time CloudWatch integration and alerting
-- [ ] Advanced compliance reporting with trends
-- [ ] Terraform and CDK template generation
-- [ ] Security orchestration platform integration
-- [ ] Custom compliance framework support
-- [ ] Advanced threat detection and correlation
-
-## Documentation
-
-- **[Installation Guide](./INSTALLATION_GUIDE.md)** - Detailed setup and configuration instructions
-- **[User Guide](./USER_GUIDE.md)** - Comprehensive usage documentation and examples
-- **[Troubleshooting](./TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Security](./SECURITY.md)** - Security considerations and best practices
-- **[Compliance Mapping](./COMPLIANCE_MAPPING.md)** - Framework mappings and control references
-- **[Implementation Report](./EC2_SECURITY_IMPLEMENTATION_REPORT.md)** - Detailed EC2 security implementation
-- **[Security Fixes Summary](./SECURITY_FIXES_SUMMARY.md)** - Summary of security enhancements
-- **[Async Foundation](./ASYNC_FOUNDATION_IMPLEMENTATION.md)** - Technical implementation details
+### 🚧 Coming Soon
+- VPC Security Groups
+- CloudTrail Configuration
+- KMS Key Management
+- Route53 DNS Security
+- ELB/ALB Configuration
 
 ## Development
 
+### Setup Development Environment
+
 ```bash
+# Clone repository
+git clone https://github.com/lucchesi-sec/aws-security-audit-suite.git
+cd aws-security-audit-suite
+
 # Install development dependencies
 pip install -e ".[dev]"
 
 # Run tests
 pytest
 
-# Format code
-black .
-isort .
-
-# Type checking
-mypy .
+# Run security checks
+bandit -r .
+safety check
 ```
+
+### Creating a Plugin
+
+```python
+from core.plugin import Plugin, Finding
+from core.finding import Severity
+
+class CustomServicePlugin(Plugin):
+    def __init__(self):
+        super().__init__("custom-service", "Custom Service Scanner")
+    
+    async def scan(self, context):
+        # Implement scanning logic
+        findings = []
+        # ... scanning code ...
+        return findings
+
+# Register plugin
+register = lambda scanner: scanner.register_plugin(CustomServicePlugin())
+```
+
+## Security Features
+
+- **Input Validation**: All user inputs are validated against allowlists
+- **Secure Defaults**: Conservative settings and safe scanning practices
+- **Rate Limiting**: Prevents API throttling and respects AWS limits
+- **Credential Safety**: No credential logging or exposure
+- **Audit Logging**: Comprehensive activity logging for compliance
+
+## Compliance Frameworks
+
+### CIS Benchmarks
+- CIS AWS Foundations Benchmark v1.4.0
+- Automated mapping of findings to controls
+- Evidence collection for audits
+
+### SOC2 Type II
+- Security control validation
+- Availability and confidentiality checks
+- Processing integrity verification
+
+### Custom Frameworks
+- Define custom compliance rules
+- Map findings to internal policies
+- Generate compliance reports
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+3. Make your changes
+4. Add tests for new functionality
+5. Run the test suite
+6. Submit a pull request
 
 ## License
 
