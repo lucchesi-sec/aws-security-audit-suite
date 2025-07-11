@@ -2,7 +2,6 @@
 Rate limiting for AWS API calls to prevent throttling.
 """
 
-import asyncio
 from typing import Dict, Optional
 from asyncio_throttle import Throttler
 

@@ -16,7 +16,7 @@ from rich import print
 
 from core.audit_context import AuditContext
 from core.scanner import Scanner
-from core.finding import Severity, Status
+from core.finding import Severity
 from plugins.s3 import register as s3_register
 from plugins.iam import register as iam_register
 from plugins.ec2 import register as ec2_register

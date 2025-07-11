@@ -4,14 +4,12 @@ Enhanced for enterprise environments with cross-account support.
 """
 
 import boto3
-import asyncio
 import re
-import os
-from typing import Optional, Dict, Any, List, Union
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
 import logging
 from .rate_limiter import get_rate_limiter
-from .async_client import AsyncClientManager, ClientConfig, configure_default_client
+from .async_client import AsyncClientManager, ClientConfig
 
 logger = logging.getLogger(__name__)
 
@@ -188,8 +186,6 @@ class AuditContext:
         """Create new audit context with assumed role."""
         if not ARN_PATTERN.match(role_arn):
             raise ValueError(f"Invalid role ARN: {role_arn}")
-        
-        session_name = session_name or f"aws-security-suite-{self._account_id}"
         
         # Create new context with assumed role
         new_context = AuditContext(
