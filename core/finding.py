@@ -95,3 +95,63 @@ class Finding:
             timestamp=datetime.fromisoformat(data.get("timestamp", datetime.utcnow().isoformat())),
             scanner_version=data.get("scanner_version", "1.0")
         )
+
+
+@dataclass
+class ScanResult:
+    """Container for scan results from all services."""
+    account_id: str
+    regions_scanned: List[str] = field(default_factory=list)
+    services_scanned: List[str] = field(default_factory=list)
+    findings: List[Finding] = field(default_factory=list)
+    scan_duration_seconds: float = 0.0
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+    
+    def add_finding(self, finding: Finding) -> None:
+        """Add a finding to the results."""
+        self.findings.append(finding)
+    
+    def get_findings_by_severity(self, severity: Severity) -> List[Finding]:
+        """Get all findings of a specific severity."""
+        return [f for f in self.findings if f.severity == severity]
+    
+    def get_findings_by_service(self, service: str) -> List[Finding]:
+        """Get all findings for a specific service."""
+        return [f for f in self.findings if f.service == service]
+    
+    def get_findings_by_status(self, status: Status) -> List[Finding]:
+        """Get all findings with a specific status."""
+        return [f for f in self.findings if f.status == status]
+    
+    @property
+    def total_findings(self) -> int:
+        """Total number of findings."""
+        return len(self.findings)
+    
+    @property
+    def failed_findings(self) -> int:
+        """Number of failed findings."""
+        return len([f for f in self.findings if f.status == Status.FAIL])
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert scan result to dictionary."""
+        return {
+            "account_id": self.account_id,
+            "regions_scanned": self.regions_scanned,
+            "services_scanned": self.services_scanned,
+            "findings": [f.to_dict() for f in self.findings],
+            "scan_duration_seconds": self.scan_duration_seconds,
+            "timestamp": self.timestamp.isoformat(),
+            "summary": {
+                "total_findings": self.total_findings,
+                "failed_findings": self.failed_findings,
+                "by_severity": {
+                    severity.value: len(self.get_findings_by_severity(severity))
+                    for severity in Severity
+                },
+                "by_status": {
+                    status.value: len(self.get_findings_by_status(status))
+                    for status in Status
+                }
+            }
+        }
