@@ -1,0 +1,110 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aws-security-suite"
+version = "0.1.0"
+description = "Unified AWS security scanning and compliance suite"
+authors = [
+    {name = "AWS Security Suite", email = "security@example.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["aws", "security", "compliance", "scanning"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Security",
+    "Topic :: System :: Systems Administration"
+]
+
+dependencies = [
+    # SECURITY: Updated to latest versions with security patches
+    "boto3>=1.34.0",
+    "botocore>=1.34.0",
+    "aioboto3>=12.3.0",
+    "aiobotocore>=2.11.0",
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    "asyncio-throttle>=1.0.2",
+    "pydantic>=2.5.0",
+    "aiohttp>=3.9.0",
+    # SECURITY: Add cryptography for secure operations
+    "cryptography>=41.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.12.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.12.0",
+    "isort>=5.13.0",
+    "flake8>=6.1.0",
+    "mypy>=1.8.0",
+    "moto[all]>=4.2.14"
+]
+security = [
+    # SECURITY: Add security scanning tools
+    "bandit>=1.7.5",
+    "safety>=3.0.0",
+    "semgrep>=1.45.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/lucchesi-sec/aws-security-suite"
+Repository = "https://github.com/lucchesi-sec/aws-security-suite"
+Documentation = "https://aws-security-suite.readthedocs.io"
+Issues = "https://github.com/lucchesi-sec/aws-security-suite/issues"
+
+[project.scripts]
+aws-security-suite = "cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = ["tests*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+python_classes = ["Test*"]
+addopts = [
+    "--strict-markers",
+    "--disable-warnings",
+    "--tb=short",
+    "-v"
+]
+markers = [
+    "asyncio: marks tests as async",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "aws: marks tests that require AWS credentials"
+]
