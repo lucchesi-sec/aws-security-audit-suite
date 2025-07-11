@@ -154,7 +154,7 @@ jobs:
     - name: Check Licenses
       run: |
         pip-licenses --format=json --output-file=licenses.json
-        pip-licenses --fail-on="GPL" --allow-only="MIT;BSD;Apache;ISC;MPL-2.0"
+        pip-licenses --fail-on="GPL" --allow-only="MIT;BSD;Apache;ISC;MPL-2.0;Apache Software License"
     
     - name: Upload License Report
       uses: actions/upload-artifact@v4
