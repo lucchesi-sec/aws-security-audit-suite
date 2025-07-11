@@ -88,6 +88,8 @@ jobs:
         bandit -r . --severity-level medium
     
     - name: Dependency Scan - Safety
+      env:
+        SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
       run: |
         safety scan --output json --save-as safety-report.json || true
         safety scan

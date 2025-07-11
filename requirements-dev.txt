@@ -1,3 +1,4 @@
+-i https://pkgs.safetycli.com/repository/self-73647/project/aws-security-audit-suite/pypi/simple/
 # Development Dependencies
 -r requirements.txt
 
