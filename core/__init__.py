@@ -9,16 +9,16 @@ __author__ = "Security Engineering Team"
 
 # Core module exports
 from .audit_context import AuditContext
-from .scanner import Scanner
 from .finding import Finding, Severity, Status
 from .plugin import Plugin, PluginRegistry
+from .scanner import Scanner
 
 __all__ = [
     "AuditContext",
-    "Scanner", 
+    "Scanner",
     "Finding",
     "Severity",
     "Status",
     "Plugin",
-    "PluginRegistry"
+    "PluginRegistry",
 ]

@@ -7,7 +7,7 @@
 4. [AWS Configuration](#aws-configuration)
 5. [Verification](#verification)
 6. [Docker Installation](#docker-installation)
-7. [Enterprise Deployment](#enterprise-deployment)
+7. [Advanced Deployment](#advanced-deployment)
 8. [Troubleshooting Installation](#troubleshooting-installation)
 
 ## System Requirements
@@ -230,7 +230,7 @@ services:
       - ./reports:/app/reports
 ```
 
-## Enterprise Deployment
+## Advanced Deployment
 
 ### Centralized Installation
 ```bash

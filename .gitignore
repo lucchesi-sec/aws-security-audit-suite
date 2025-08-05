@@ -178,3 +178,6 @@ reports/
 *.temp
 .tmp/
 .temp/
+
+# Crush
+.crush/

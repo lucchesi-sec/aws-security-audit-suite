@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aws-security-audit-suite"
 version = "0.1.0"
-description = "Enterprise-grade AWS security scanning and compliance automation"
+description = "Comprehensive AWS security scanning and compliance automation"
 authors = [
     {name = "Security Engineering", email = "security@example.com"}
 ]
